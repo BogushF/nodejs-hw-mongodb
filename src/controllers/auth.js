@@ -1,5 +1,5 @@
 import { FIFTEEN_MINUTES } from '../constants/index.js';
-import { loginUser, registerUser } from '../services/auth.js';
+import { loginUser, logoutUser, registerUser } from '../services/auth.js';
 import { pareUser } from '../utils/pareUser.js';
 
 export const registerUserController = async (req, res) => {
@@ -31,4 +31,13 @@ export const loginUserController = async (req, res) => {
       accessToken: session.accessToken,
     },
   });
+};
+
+export const logoutUserController = async (req, res) => {
+  await logoutUser(req.cookies.sessionId, req.cookies.sessionToken);
+
+  res.clearCookie('sessionId');
+  res.clearCookie('sessionToken');
+
+  res.status(204).send();
 };
