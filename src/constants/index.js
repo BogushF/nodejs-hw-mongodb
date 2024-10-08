@@ -22,3 +22,6 @@ export const SORT_BY_PROPS = [
 export const BOOLEANS = ['true', 'false'];
 
 export const CONTACT_TYPE = ['work', 'home', 'personal'];
+
+export const FIFTEEN_MINUTES = 15 * 60 * 1000;
+export const MONTH = 30 * 24 * 60 * 60 * 1000;
