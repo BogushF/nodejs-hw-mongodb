@@ -38,7 +38,7 @@ export const getAllContacts = async ({
 };
 
 export const getContactById = async (contactId, userId) => {
-  return await ContactsCollection.findOne(contactId, userId);
+  return await ContactsCollection.findOne({ _id: contactId, userId });
 };
 
 export const createContact = async (payload) => {
@@ -46,11 +46,15 @@ export const createContact = async (payload) => {
 };
 
 export const updateContact = async (contactId, userId, payload) => {
-  return await ContactsCollection.findOneAndUpdate(contactId, userId, payload, {
-    new: true,
-  });
+  return await ContactsCollection.findOneAndUpdate(
+    { _id: contactId, userId },
+    payload,
+    {
+      new: true,
+    },
+  );
 };
 
 export const deleteContactById = async (contactId, userId) => {
-  return await ContactsCollection.findOneAndDelete(contactId, userId);
+  return await ContactsCollection.findOneAndDelete({ _id: contactId, userId });
 };

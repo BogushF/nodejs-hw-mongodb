@@ -51,17 +51,14 @@ export const loginUser = async (payload) => {
   return session;
 };
 
-export const logoutUser = async (sessionId, sessionToken) => {
-  await SessionsCollection.deleteOne({
-    _id: sessionId,
-    accessToken: sessionToken,
-  });
+export const logoutUser = async (sessionId) => {
+  await SessionsCollection.deleteOne({ _id: sessionId });
 };
 
-export const refreshUsersSession = async ({ sessionId, sessionToken }) => {
+export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
   const session = await SessionsCollection.findOne({
     _id: sessionId,
-    refreshToken: sessionToken,
+    refreshToken,
   });
 
   if (!session) {
@@ -74,16 +71,15 @@ export const refreshUsersSession = async ({ sessionId, sessionToken }) => {
   if (isSessionTokenExpired) {
     throw createHttpError(401, 'Session token expired');
   }
+  const newSession = createSession();
 
   await SessionsCollection.deleteOne({
     _id: sessionId,
-    refreshToken: sessionToken,
+    refreshToken,
   });
 
-  const newSession = await SessionsCollection.create({
+  return await SessionsCollection.create({
     userId: session.userId,
-    ...createSession(),
+    ...newSession,
   });
-
-  return newSession;
 };
