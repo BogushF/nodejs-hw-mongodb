@@ -2,8 +2,12 @@ import { UsersCollection } from '../db/models/user.js';
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 import { SessionsCollection } from '../db/models/session.js';
-import { FIFTEEN_MINUTES, MONTH } from '../constants/index.js';
+import { FIFTEEN_MINUTES, MONTH, SMTP } from '../constants/index.js';
 import crypto from 'node:crypto';
+import { emailClient } from '../utils/emailClient.js';
+import { env } from '../utils/env.js';
+import { generateResetEmail } from '../utils/generateResetEmail.js';
+import jwt from 'jsonwebtoken';
 
 const createSession = () => ({
   accessToken: crypto.randomBytes(24).toString('base64'),
@@ -82,4 +86,64 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
     userId: session.userId,
     ...newSession,
   });
+};
+
+export const requestResetToken = async (email) => {
+  const user = await UsersCollection.findOne({ email });
+
+  if (!user) {
+    throw createHttpError(404, 'User not found');
+  }
+
+  const resetToken = jwt.sign(
+    {
+      sub: user._id,
+      email,
+    },
+    env(SMTP.JWT_SECRET),
+    { expiresIn: 60 * 5 },
+  );
+
+  const resetLink = `${env(
+    SMTP.APP_DOMAIN,
+  )}/reset-password?token=${resetToken}`;
+
+  try {
+    await emailClient.sendMail({
+      to: email,
+      from: env(SMTP.SMTP_FROM),
+      html: generateResetEmail({
+        name: user.name,
+        resetLink: resetLink,
+      }),
+      subject: 'Reset your password',
+    });
+  } catch (err) {
+    console.log(err);
+    throw createHttpError(
+      500,
+      'Failed to send the email, please try again later.',
+    );
+  }
+};
+
+export const resetPassword = async ({ token, password }) => {
+  let payload;
+  try {
+    payload = jwt.verify(token, env(SMTP.JWT_SECRET));
+  } catch (err) {
+    throw createHttpError(401, err.message);
+  }
+  const user = await UsersCollection.findById(payload.sub);
+
+  if (!user) {
+    throw createHttpError(404, 'User not found');
+  }
+
+  const encryptedPassword = await bcrypt.hash(password, 10);
+
+  await UsersCollection.findByIdAndUpdate(
+    { _id: user._id },
+    { password: encryptedPassword },
+  );
 };
