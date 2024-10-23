@@ -1,0 +1,40 @@
+type: object
+required:
+  - _id
+  - name
+  - phoneNumber
+  - contactType
+  - userId
+properties:
+  _id:
+    description: "Contact's id"
+    type: string
+    example: '670a30ad9bce60b94b4b0d6d'
+  name:
+    description: "Contact's name"
+    type: string
+    example: 'Miroslaw Kulik'
+  phoneNumber:
+    description: "Contact's phone number"
+    type: string
+    example: '+380570322789'
+  email:
+    description: "Contact's email"
+    type: string
+    example: 'kulik@gmail.com'
+  isFavourite:
+    description: 'Should add the contact to favorites list?'
+    type: boolean
+    example: true
+  contactType:
+    description: 'Type of contact'
+    type: string
+    enum: ['personal', 'home', 'work']
+    example: 'personal'
+  userId:
+    description: "Contact's creator id"
+    type: string
+    example: '65e4d45hdd286b30065d54dfg'
+  photo:
+    description: "Link to contact's photo"
+    type: string
